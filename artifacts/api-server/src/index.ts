@@ -6,10 +6,15 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 config({ path: path.resolve(__dirname, "../.env") });
 
-if (!process.env.DATABASE_URL) {
+// Use DATABASE_URL only if it's a SQLite/libsql/Turso URL. Some hosts (e.g. Replit)
+// auto-inject a PostgreSQL DATABASE_URL we must ignore — fall back to a local SQLite file.
+const existingUrl = process.env.DATABASE_URL;
+const isLibsqlUrl = !!existingUrl && /^(file:|libsql:|wss?:|https?:)/i.test(existingUrl);
+if (!isLibsqlUrl) {
   // Normalize to forward slashes — @libsql/client requires file URLs without backslashes
   const dbPath = path.resolve(__dirname, "../../../lib/db/local.db").replace(/\\/g, "/");
   process.env.DATABASE_URL = `file:${dbPath}`;
+  delete process.env.DATABASE_AUTH_TOKEN; // not used for a local file DB
 }
 
 // Dynamic imports ensure env vars are set before @workspace/db initialises its pool
