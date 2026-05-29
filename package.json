@@ -12,7 +12,6 @@
     "deploy:migrate": "pnpm --filter @workspace/db run push-force && pnpm --filter @workspace/scripts run seed"
   },
   "private": true,
-  "packageManager": "pnpm@11.4.0",
   "devDependencies": {
     "prettier": "^3.8.3",
     "typescript": "~5.9.3"
