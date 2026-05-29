@@ -1,7 +1,7 @@
 modules = ["nodejs-24"]
 
-# Legacy fallback run command (the workflow below is what the Run button uses)
-run = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && PORT=8080 pnpm --filter @workspace/api-server run start:prod"
+# Legacy fallback (the workflow below is what the Run button uses)
+run = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && NODE_ENV=production PORT=8080 node artifacts/api-server/dist/index.mjs"
 
 [nix]
 channel = "stable-25_05"
@@ -20,9 +20,9 @@ localPort = 8080
 externalPort = 80
 
 # ── Run button workflow ──────────────────────────────────────────────────────
-# Replit keeps this process alive and connects the preview/public URL to port 8080.
-# Installs only the API server + its deps (light), then starts the server which also
-# serves the pre-built website. waitForPort tells Replit to proxy once 8080 is up.
+# Runs the PRE-BUILT bundle with plain node (no tsx / no worker threads -> stable on
+# free tier). NODE_ENV=production disables the pino-pretty worker too. Replit keeps
+# this process alive and routes the public URL to port 8080 (waitForPort).
 [workflows]
 runButton = "Start App"
 
@@ -33,11 +33,11 @@ author = 0
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && PORT=8080 pnpm --filter @workspace/api-server run start:prod"
+args = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && NODE_ENV=production PORT=8080 node artifacts/api-server/dist/index.mjs"
 waitForPort = 8080
 
 # Used only if you ever upgrade to paid Replit Deployments (free tier ignores this)
 [deployment]
 deploymentTarget = "autoscale"
-build = ["sh", "-c", "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/admin-web run build"]
-run = ["sh", "-c", "pnpm --filter @workspace/api-server run start:prod"]
+build = ["sh", "-c", "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/admin-web run build && pnpm --filter @workspace/api-server run build"]
+run = ["sh", "-c", "NODE_ENV=production node artifacts/api-server/dist/index.mjs"]
