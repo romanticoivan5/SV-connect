@@ -1,7 +1,7 @@
 modules = ["nodejs-24"]
 
 # Legacy fallback (the workflow below is what the Run button uses)
-run = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && NODE_ENV=production PORT=8080 pnpm --filter @workspace/api-server run start:prod"
+run = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && NODE_ENV=production PORT=8080 node artifacts/api-server/dist/index.mjs"
 
 [nix]
 channel = "stable-25_05"
@@ -33,11 +33,11 @@ author = 0
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && NODE_ENV=production PORT=8080 pnpm --filter @workspace/api-server run start:prod"
+args = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && NODE_ENV=production PORT=8080 node artifacts/api-server/dist/index.mjs"
 waitForPort = 8080
 
 # Used only if you ever upgrade to paid Replit Deployments (free tier ignores this)
 [deployment]
 deploymentTarget = "autoscale"
 build = ["sh", "-c", "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/admin-web run build"]
-run = ["sh", "-c", "NODE_ENV=production pnpm --filter @workspace/api-server run start:prod"]
+run = ["sh", "-c", "NODE_ENV=production node artifacts/api-server/dist/index.mjs"]

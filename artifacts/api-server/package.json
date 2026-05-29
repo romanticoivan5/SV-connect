@@ -13,6 +13,7 @@
   "dependencies": {
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
+    "@libsql/client": "^0.14.0",
     "dotenv": "^16.5.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",

@@ -29,6 +29,12 @@ async function buildAll() {
     // - use path traversal to read files (e.g. @google-cloud/secret-manager loads sibling .proto files)
     external: [
       "*.node",
+      // libsql loads platform-specific native engines at runtime — keep it external
+      // so node resolves it (and its @libsql/linux-x64-gnu binding) from node_modules.
+      "libsql",
+      "@libsql/client",
+      "@libsql/core",
+      "@libsql/*",
       "sharp",
       "better-sqlite3",
       "sqlite3",
