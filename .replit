@@ -1,8 +1,6 @@
 modules = ["nodejs-24"]
 
-# When you press "Run": install ONLY the API server + its deps (lightweight, free-tier
-# friendly), then start. The website is pre-built and committed, and the API server
-# serves it, so everything runs at ONE URL with no heavy build step on Replit.
+# Legacy fallback run command (the workflow below is what the Run button uses)
 run = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && PORT=8080 pnpm --filter @workspace/api-server run start:prod"
 
 [nix]
@@ -20,6 +18,23 @@ timeoutMs = 20000
 [[ports]]
 localPort = 8080
 externalPort = 80
+
+# ── Run button workflow ──────────────────────────────────────────────────────
+# Replit keeps this process alive and connects the preview/public URL to port 8080.
+# Installs only the API server + its deps (light), then starts the server which also
+# serves the pre-built website. waitForPort tells Replit to proxy once 8080 is up.
+[workflows]
+runButton = "Start App"
+
+[[workflows.workflow]]
+name = "Start App"
+mode = "sequential"
+author = 0
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && PORT=8080 pnpm --filter @workspace/api-server run start:prod"
+waitForPort = 8080
 
 # Used only if you ever upgrade to paid Replit Deployments (free tier ignores this)
 [deployment]
