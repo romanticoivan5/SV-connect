@@ -37,13 +37,15 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     return;
   }
 
-  const passwordHash = await bcrypt.hash(password, 12);
+  const passwordHash = await bcrypt.hash(password, 10);
 
+  // New accounts are created with status "pending" — admin must approve
   const [user] = await db
     .insert(usersTable)
-    .values({ firstName, lastName, email, passwordHash, address, contactNumber })
+    .values({ firstName, lastName, email, passwordHash, address, contactNumber, status: "pending" })
     .returning();
 
+  // Return a token so the generated client works — the mobile app checks user.status === "pending"
   const token = signToken({ userId: user.id, email: user.email, role: user.role });
 
   res.status(201).json({ token, user: toUserResponse(user) });
@@ -64,8 +66,13 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
+  if (user.status === "pending") {
+    res.status(403).json({ error: "pending", message: "Your account is awaiting approval by the barangay admin. Please check back later." });
+    return;
+  }
+
   if (user.status === "disabled") {
-    res.status(403).json({ error: "Your account has been disabled. Please contact the barangay." });
+    res.status(403).json({ error: "disabled", message: "Your account has been disabled. Please contact the barangay office." });
     return;
   }
 

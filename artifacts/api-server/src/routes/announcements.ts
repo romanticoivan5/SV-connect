@@ -54,7 +54,7 @@ router.get("/announcements", authenticate, async (req, res): Promise<void> => {
   const offset = (page - 1) * limit;
 
   const [countResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(announcementsTable);
 
   const rows = await db

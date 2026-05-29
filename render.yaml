@@ -1,0 +1,26 @@
+# Render deployment config for SV Connect
+# One web service serves BOTH the API and the built admin website at a single URL.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: sv-connect
+    runtime: node
+    plan: free
+    # Install deps and build the React admin website (API runs via tsx, no build step)
+    buildCommand: pnpm install --no-frozen-lockfile && pnpm --filter @workspace/admin-web run build
+    # Start the Express API server, which also serves the built website
+    startCommand: pnpm --filter @workspace/api-server run start:prod
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # The built website lives here relative to the api-server working directory
+      - key: STATIC_DIR
+        value: ../admin-web/dist/public
+      # Paste these in the Render dashboard (from your Turso database):
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_AUTH_TOKEN
+        sync: false
+      # Auto-generated secret for signing login tokens
+      - key: SESSION_SECRET
+        generateValue: true

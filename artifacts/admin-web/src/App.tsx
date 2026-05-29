@@ -12,6 +12,7 @@ import Announcements from "@/pages/announcements/index";
 import AnnouncementForm from "@/pages/announcements/form";
 import UsersList from "@/pages/users/index";
 import UserDetail from "@/pages/users/[id]";
+import PendingApprovals from "@/pages/users/pending";
 import Profile from "@/pages/profile";
 
 const queryClient = new QueryClient({
@@ -23,28 +24,60 @@ const queryClient = new QueryClient({
   },
 });
 
+// Flat routing — no nested Switch. More-specific paths before less-specific ones
+// so Wouter's prefix matching doesn't swallow sub-routes.
 function Router() {
   return (
     <Switch>
+      {/* Public */}
       <Route path="/login" component={Login} />
+
+      {/* Requests — detail before list */}
+      <Route path="/requests/:id">
+        <Layout><RequestDetail /></Layout>
+      </Route>
+      <Route path="/requests">
+        <Layout><Requests /></Layout>
+      </Route>
+
+      {/* Announcements — /new and /:id/edit before base */}
+      <Route path="/announcements/new">
+        <Layout><AnnouncementForm /></Layout>
+      </Route>
+      <Route path="/announcements/:id/edit">
+        <Layout><AnnouncementForm /></Layout>
+      </Route>
+      <Route path="/announcements">
+        <Layout><Announcements /></Layout>
+      </Route>
+
+      {/* Users — pending before detail before list */}
+      <Route path="/users/pending">
+        <Layout><PendingApprovals /></Layout>
+      </Route>
+      <Route path="/users/:id">
+        <Layout><UserDetail /></Layout>
+      </Route>
+      <Route path="/users">
+        <Layout><UsersList /></Layout>
+      </Route>
+
+      {/* Other protected routes */}
+      <Route path="/dashboard">
+        <Layout><Dashboard /></Layout>
+      </Route>
+      <Route path="/profile">
+        <Layout><Profile /></Layout>
+      </Route>
+
+      {/* Root redirect */}
       <Route path="/">
         <Redirect to="/dashboard" />
       </Route>
-      <Route path="/:rest*">
-        <Layout>
-          <Switch>
-            <Route path="/dashboard" component={Dashboard} />
-            <Route path="/requests" component={Requests} />
-            <Route path="/requests/:id" component={RequestDetail} />
-            <Route path="/announcements" component={Announcements} />
-            <Route path="/announcements/new" component={AnnouncementForm} />
-            <Route path="/announcements/:id/edit" component={AnnouncementForm} />
-            <Route path="/users" component={UsersList} />
-            <Route path="/users/:id" component={UserDetail} />
-            <Route path="/profile" component={Profile} />
-            <Route component={NotFound} />
-          </Switch>
-        </Layout>
+
+      {/* 404 */}
+      <Route>
+        <Layout><NotFound /></Layout>
       </Route>
     </Switch>
   );

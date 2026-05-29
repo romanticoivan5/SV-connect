@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import bcrypt from "bcryptjs";
-import { eq, ilike, and, sql } from "drizzle-orm";
-import { db, usersTable } from "@workspace/db";
+import { eq, like, and, sql } from "drizzle-orm";
+import { db, usersTable, notificationsTable } from "@workspace/db";
 import {
   ListUsersQueryParams,
   GetUserParams,
@@ -42,21 +42,21 @@ router.get("/users", authenticate, requireAdmin, async (req, res): Promise<void>
   const conditions = [];
   if (search) {
     conditions.push(
-      sql`(${ilike(usersTable.firstName, `%${search}%`)} OR ${ilike(usersTable.lastName, `%${search}%`)} OR ${ilike(usersTable.email, `%${search}%`)})`
+      sql`(${like(usersTable.firstName, `%${search}%`)} OR ${like(usersTable.lastName, `%${search}%`)} OR ${like(usersTable.email, `%${search}%`)})`
     );
   }
   if (role) {
     conditions.push(eq(usersTable.role, role as "admin" | "resident"));
   }
   if (status) {
-    conditions.push(eq(usersTable.status, status as "active" | "disabled"));
+    conditions.push(eq(usersTable.status, status as "active" | "disabled" | "pending"));
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
   const offset = (page - 1) * limit;
 
   const [countResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(usersTable)
     .where(where);
 
@@ -192,6 +192,57 @@ router.patch("/users/:id/enable", authenticate, requireAdmin, async (req, res): 
     .update(usersTable)
     .set({ status: "active", updatedAt: new Date() })
     .where(eq(usersTable.id, params.data.id))
+    .returning();
+
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  res.json(toUserResponse(user));
+});
+
+// Approve a pending account — sets status to "active" and notifies the user
+router.patch("/users/:id/approve", authenticate, requireAdmin, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid user id" });
+    return;
+  }
+
+  const [user] = await db
+    .update(usersTable)
+    .set({ status: "active", updatedAt: new Date() })
+    .where(eq(usersTable.id, id))
+    .returning();
+
+  if (!user) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  await db.insert(notificationsTable).values({
+    userId: user.id,
+    title: "Account Approved",
+    message: `Welcome, ${user.firstName}! Your SV Connect account has been approved. You can now access all resident services.`,
+    type: "account_approved",
+  });
+
+  res.json(toUserResponse(user));
+});
+
+// Reject a pending account — sets status to "disabled"
+router.patch("/users/:id/reject", authenticate, requireAdmin, async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid user id" });
+    return;
+  }
+
+  const [user] = await db
+    .update(usersTable)
+    .set({ status: "disabled", updatedAt: new Date() })
+    .where(eq(usersTable.id, id))
     .returning();
 
   if (!user) {

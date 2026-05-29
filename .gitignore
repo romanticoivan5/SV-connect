@@ -11,6 +11,15 @@ out-tsc
 # dependencies
 node_modules
 
+# environment & local database (never commit secrets or local data)
+.env
+.env.*
+!.env.example
+local.db
+*.db-journal
+*.db-wal
+*.db-shm
+
 # IDEs and editors
 /.idea
 .project

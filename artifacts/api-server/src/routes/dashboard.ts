@@ -8,37 +8,37 @@ const router: IRouter = Router();
 
 router.get("/dashboard/stats", authenticate, requireAdmin, async (_req, res): Promise<void> => {
   const [totalResidentsResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(usersTable)
     .where(eq(usersTable.role, "resident"));
 
   const [totalRequestsResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(requestsTable);
 
   const [pendingResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(requestsTable)
     .where(eq(requestsTable.status, "pending"));
 
   const [approvedResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(requestsTable)
     .where(eq(requestsTable.status, "approved"));
 
   const [rejectedResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(requestsTable)
     .where(eq(requestsTable.status, "rejected"));
 
   const [announcementsResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(announcementsTable);
 
   // "recent activity" = requests submitted in the last 7 days
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
   const [recentActivityResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(requestsTable)
     .where(sql`${requestsTable.createdAt} >= ${sevenDaysAgo}`);
 
@@ -99,7 +99,7 @@ router.get("/dashboard/request-breakdown", authenticate, requireAdmin, async (_r
   const byTypeRows = await db
     .select({
       label: requestsTable.type,
-      count: sql<number>`count(*)::int`,
+      count: sql<number>`count(*)`,
     })
     .from(requestsTable)
     .groupBy(requestsTable.type);
@@ -107,7 +107,7 @@ router.get("/dashboard/request-breakdown", authenticate, requireAdmin, async (_r
   const byStatusRows = await db
     .select({
       label: requestsTable.status,
-      count: sql<number>`count(*)::int`,
+      count: sql<number>`count(*)`,
     })
     .from(requestsTable)
     .groupBy(requestsTable.status);

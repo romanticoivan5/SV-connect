@@ -3,12 +3,16 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "preinstall": "node -e \"void 0\"",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "deploy:build": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/admin-web run build",
+    "deploy:start": "pnpm --filter @workspace/api-server run start:prod",
+    "deploy:migrate": "pnpm --filter @workspace/db run push-force && pnpm --filter @workspace/scripts run seed"
   },
   "private": true,
+  "packageManager": "pnpm@11.4.0",
   "devDependencies": {
     "prettier": "^3.8.3",
     "typescript": "~5.9.3"

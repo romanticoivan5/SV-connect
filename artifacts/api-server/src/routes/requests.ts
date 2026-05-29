@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and, ilike, desc, sql } from "drizzle-orm";
+import { eq, and, like, desc, sql } from "drizzle-orm";
 import { db, requestsTable, usersTable, notificationsTable } from "@workspace/db";
 import {
   ListRequestsQueryParams,
@@ -69,7 +69,7 @@ router.get("/requests/my", authenticate, async (req, res): Promise<void> => {
   const where = and(...conditions);
 
   const [countResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(requestsTable)
     .where(where);
 
@@ -126,14 +126,14 @@ router.get("/requests", authenticate, async (req, res): Promise<void> => {
   }
   if (search) {
     conditions.push(
-      sql`(${ilike(requestsTable.subject, `%${search}%`)} OR ${ilike(requestsTable.description, `%${search}%`)})`
+      sql`(${like(requestsTable.subject, `%${search}%`)} OR ${like(requestsTable.description, `%${search}%`)})`
     );
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const [countResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ count: sql<number>`count(*)` })
     .from(requestsTable)
     .where(where);
 

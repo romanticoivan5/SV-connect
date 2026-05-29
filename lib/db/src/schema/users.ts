@@ -1,22 +1,19 @@
-import { pgTable, serial, text, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
-export const roleEnum = pgEnum("role", ["admin", "resident"]);
-export const userStatusEnum = pgEnum("user_status", ["active", "disabled"]);
-
-export const usersTable = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const usersTable = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  role: roleEnum("role").notNull().default("resident"),
-  status: userStatusEnum("status").notNull().default("active"),
+  role: text("role", { enum: ["admin", "resident"] }).notNull().default("resident"),
+  status: text("status", { enum: ["active", "pending", "disabled"] }).notNull().default("pending"),
   address: text("address"),
   contactNumber: text("contact_number"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().defaultNow(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }),
 });
 
 export const insertUserSchema = createInsertSchema(usersTable).omit({

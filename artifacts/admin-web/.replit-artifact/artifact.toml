@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "BarangayConnect Admin Dashboard"
+title = "SV Connect Admin Dashboard"
 version = "1.0.0"
 id = "artifacts/admin-web"
 router = "path"

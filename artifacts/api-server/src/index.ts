@@ -1,14 +1,22 @@
-import app from "./app";
-import { logger } from "./lib/logger";
+// Load env BEFORE any workspace imports that read process.env at module init time
+import { config } from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
 
-const rawPort = process.env["PORT"];
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+config({ path: path.resolve(__dirname, "../.env") });
 
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
+if (!process.env.DATABASE_URL) {
+  // Normalize to forward slashes — @libsql/client requires file URLs without backslashes
+  const dbPath = path.resolve(__dirname, "../../../lib/db/local.db").replace(/\\/g, "/");
+  process.env.DATABASE_URL = `file:${dbPath}`;
 }
 
+// Dynamic imports ensure env vars are set before @workspace/db initialises its pool
+const { default: app } = await import("./app");
+const { logger } = await import("./lib/logger");
+
+const rawPort = process.env["PORT"] ?? "3001";
 const port = Number(rawPort);
 
 if (Number.isNaN(port) || port <= 0) {
@@ -20,6 +28,5 @@ app.listen(port, (err) => {
     logger.error({ err }, "Error listening on port");
     process.exit(1);
   }
-
-  logger.info({ port }, "Server listening");
+  logger.info({ port, db: process.env.DATABASE_URL }, "Server listening");
 });

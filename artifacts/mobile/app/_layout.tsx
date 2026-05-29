@@ -20,7 +20,9 @@ import { AuthProvider } from "@/context/AuthContext";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
+const apiDomain = process.env.EXPO_PUBLIC_DOMAIN ?? "localhost:3001";
+const apiProtocol = apiDomain.startsWith("localhost") || apiDomain.match(/^192\.168\.|^10\.|^172\./) ? "http" : "https";
+setBaseUrl(`${apiProtocol}://${apiDomain}`);
 setAuthTokenGetter(async () => {
   const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
   return await AsyncStorage.getItem('barangay_token');

@@ -87,7 +87,7 @@ export const listUsersQueryLimitDefault = 20;
 export const ListUsersQueryParams = zod.object({
   "search": zod.coerce.string().optional(),
   "role": zod.enum(['admin', 'resident']).optional(),
-  "status": zod.enum(['active', 'disabled']).optional(),
+  "status": zod.enum(['active', 'disabled', 'pending']).optional(),
   "page": zod.coerce.number().default(listUsersQueryPageDefault),
   "limit": zod.coerce.number().default(listUsersQueryLimitDefault)
 })

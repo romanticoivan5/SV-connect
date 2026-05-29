@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Platform, ScrollView, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useUpdateProfile, useGetMe, getGetMeQueryKey } from '@workspace/api-client-react';
 import { useColors } from '@/hooks/useColors';
@@ -11,6 +12,7 @@ export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const colors = useColors();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [form, setForm] = useState({
     firstName: user?.firstName || '',
@@ -48,13 +50,24 @@ export default function ProfileScreen() {
     updateMutation.mutate({ data });
   };
 
+  const doLogout = async () => {
+    await logout();
+    router.replace('/login');
+  };
+
   const handleLogout = () => {
+    // Alert.alert has no working buttons on React Native Web — use window.confirm there
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' ? window.confirm('Are you sure you want to logout?') : true;
+      if (confirmed) doLogout();
+      return;
+    }
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: logout },
+        { text: 'Logout', style: 'destructive', onPress: doLogout },
       ]
     );
   };
