@@ -1,8 +1,9 @@
 modules = ["nodejs-24"]
 
-# When you press "Run": install deps, build the website, then start the server.
-# The API server also serves the built website, so everything runs at ONE URL.
-run = "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/admin-web run build && PORT=8080 pnpm --filter @workspace/api-server run start:prod"
+# When you press "Run": install ONLY the API server + its deps (lightweight, free-tier
+# friendly), then start. The website is pre-built and committed, and the API server
+# serves it, so everything runs at ONE URL with no heavy build step on Replit.
+run = "pnpm install --filter \"@workspace/api-server...\" --no-frozen-lockfile && PORT=8080 pnpm --filter @workspace/api-server run start:prod"
 
 [nix]
 channel = "stable-25_05"
