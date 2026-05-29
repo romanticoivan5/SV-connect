@@ -1,15 +1,11 @@
-modules = ["nodejs-24", "postgresql-16"]
+modules = ["nodejs-24"]
 
-[deployment]
-router = "application"
-deploymentTarget = "autoscale"
+# When you press "Run": install deps, build the website, then start the server.
+# The API server also serves the built website, so everything runs at ONE URL.
+run = "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/admin-web run build && PORT=8080 pnpm --filter @workspace/api-server run start:prod"
 
-[deployment.postBuild]
-args = ["pnpm", "store", "prune"]
-env = { "CI" = "true" }
-
-[workflows]
-runButton = "Project"
+[nix]
+channel = "stable-25_05"
 
 [agent]
 stack = "PNPM_WORKSPACE"
@@ -19,21 +15,13 @@ expertMode = true
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
 
+# Expose the server (port 8080) on the public web port (80) -> your replit.dev link
 [[ports]]
 localPort = 8080
 externalPort = 80
 
-[[ports]]
-localPort = 8081
-externalPort = 8081
-
-[[ports]]
-localPort = 18115
-externalPort = 3002
-
-[[ports]]
-localPort = 24276
-externalPort = 3000
-
-[nix]
-channel = "stable-25_05"
+# Used only if you ever upgrade to paid Replit Deployments (free tier ignores this)
+[deployment]
+deploymentTarget = "autoscale"
+build = ["sh", "-c", "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/admin-web run build"]
+run = ["sh", "-c", "pnpm --filter @workspace/api-server run start:prod"]

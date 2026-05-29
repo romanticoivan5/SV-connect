@@ -23,10 +23,7 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-app.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
-  }
+// Bind to 0.0.0.0 so hosting platforms (Replit, Render, etc.) can route traffic in
+app.listen(port, "0.0.0.0", () => {
   logger.info({ port, db: process.env.DATABASE_URL }, "Server listening");
 });
