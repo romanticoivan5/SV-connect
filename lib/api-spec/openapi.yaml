@@ -3,13 +3,25 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: BarangayConnect API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management
+  - name: requests
+    description: Resident request management
+  - name: announcements
+    description: Barangay announcements
+  - name: notifications
+    description: User notifications
+  - name: dashboard
+    description: Admin dashboard statistics
 paths:
   /healthz:
     get:
@@ -24,6 +36,616 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── AUTH ───────────────────────────────────────────────────────────────────
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── USERS ──────────────────────────────────────────────────────────────────
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users (admin only)
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [admin, resident]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, disabled]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update user (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}/disable:
+    patch:
+      operationId: disableUser
+      tags: [users]
+      summary: Disable a user account (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}/enable:
+    patch:
+      operationId: enableUser
+      tags: [users]
+      summary: Enable a user account (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User enabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/profile:
+    patch:
+      operationId: updateProfile
+      tags: [users]
+      summary: Update own profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  # ─── REQUESTS ────────────────────────────────────────────────────────────────
+  /requests:
+    get:
+      operationId: listRequests
+      tags: [requests]
+      summary: List requests
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [barangay_clearance, certificate_of_residency, business_permit, complaint, community_concern]
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestList"
+
+    post:
+      operationId: createRequest
+      tags: [requests]
+      summary: Submit a new request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestInput"
+      responses:
+        "201":
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Request"
+
+  /requests/{id}:
+    get:
+      operationId: getRequest
+      tags: [requests]
+      summary: Get a request by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Request"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updateRequest
+      tags: [requests]
+      summary: Update request details (requester only, while pending)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestUpdate"
+      responses:
+        "200":
+          description: Updated request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Request"
+
+  /requests/{id}/approve:
+    patch:
+      operationId: approveRequest
+      tags: [requests]
+      summary: Approve a request (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestAction"
+      responses:
+        "200":
+          description: Request approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Request"
+
+  /requests/{id}/reject:
+    patch:
+      operationId: rejectRequest
+      tags: [requests]
+      summary: Reject a request (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestAction"
+      responses:
+        "200":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Request"
+
+  /requests/my:
+    get:
+      operationId: listMyRequests
+      tags: [requests]
+      summary: List current user's own requests
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of own requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestList"
+
+  # ─── ANNOUNCEMENTS ────────────────────────────────────────────────────────────
+  /announcements:
+    get:
+      operationId: listAnnouncements
+      tags: [announcements]
+      summary: List announcements
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of announcements
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnnouncementList"
+
+    post:
+      operationId: createAnnouncement
+      tags: [announcements]
+      summary: Create announcement (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+
+  /announcements/{id}:
+    get:
+      operationId: getAnnouncement
+      tags: [announcements]
+      summary: Get an announcement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Announcement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updateAnnouncement
+      tags: [announcements]
+      summary: Update announcement (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+
+    delete:
+      operationId: deleteAnnouncement
+      tags: [announcements]
+      summary: Delete announcement (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List notifications for current user
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationList"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: All marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── DASHBOARD (wow endpoints) ────────────────────────────────────────────────
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics (admin only)
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/recent-requests:
+    get:
+      operationId: getRecentRequests
+      tags: [dashboard]
+      summary: Get recently submitted requests (admin only)
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Recent requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Request"
+
+  /dashboard/request-breakdown:
+    get:
+      operationId: getRequestBreakdown
+      tags: [dashboard]
+      summary: Get requests grouped by type and status (admin only)
+      responses:
+        "200":
+          description: Breakdown data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestBreakdown"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +656,349 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    # ─── AUTH ──────────────────────────────────────────────────────────────────
+    RegisterInput:
+      type: object
+      required: [firstName, lastName, email, password, address, contactNumber]
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+        lastName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        address:
+          type: string
+        contactNumber:
+          type: string
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    # ─── USERS ─────────────────────────────────────────────────────────────────
+    User:
+      type: object
+      required: [id, firstName, lastName, email, role, status, createdAt]
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, resident]
+        status:
+          type: string
+          enum: [active, disabled]
+        address:
+          type: ["string", "null"]
+        contactNumber:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: ["string", "null"]
+
+    UserList:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    UserUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        address:
+          type: string
+        contactNumber:
+          type: string
+        role:
+          type: string
+          enum: [admin, resident]
+
+    ProfileUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        address:
+          type: string
+        contactNumber:
+          type: string
+        password:
+          type: string
+          minLength: 6
+
+    # ─── REQUESTS ──────────────────────────────────────────────────────────────
+    Request:
+      type: object
+      required: [id, userId, type, status, subject, description, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        user:
+          $ref: "#/components/schemas/User"
+        type:
+          type: string
+          enum: [barangay_clearance, certificate_of_residency, business_permit, complaint, community_concern]
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        subject:
+          type: string
+        description:
+          type: string
+        remarks:
+          type: ["string", "null"]
+        processedBy:
+          type: ["integer", "null"]
+        processedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: ["string", "null"]
+
+    RequestList:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Request"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    RequestInput:
+      type: object
+      required: [type, subject, description]
+      properties:
+        type:
+          type: string
+          enum: [barangay_clearance, certificate_of_residency, business_permit, complaint, community_concern]
+        subject:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+
+    RequestUpdate:
+      type: object
+      properties:
+        subject:
+          type: string
+        description:
+          type: string
+
+    RequestAction:
+      type: object
+      properties:
+        remarks:
+          type: string
+
+    # ─── ANNOUNCEMENTS ─────────────────────────────────────────────────────────
+    Announcement:
+      type: object
+      required: [id, title, content, authorId, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: ["string", "null"]
+        authorId:
+          type: integer
+        author:
+          $ref: "#/components/schemas/User"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: ["string", "null"]
+
+    AnnouncementList:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Announcement"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AnnouncementInput:
+      type: object
+      required: [title, content]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1
+        category:
+          type: string
+
+    AnnouncementUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+
+    # ─── NOTIFICATIONS ─────────────────────────────────────────────────────────
+    Notification:
+      type: object
+      required: [id, userId, title, message, isRead, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          type: ["string", "null"]
+        isRead:
+          type: boolean
+        requestId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    NotificationList:
+      type: object
+      required: [data, unreadCount]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        unreadCount:
+          type: integer
+
+    # ─── DASHBOARD ─────────────────────────────────────────────────────────────
+    DashboardStats:
+      type: object
+      required: [totalResidents, totalRequests, pendingRequests, approvedRequests, rejectedRequests, totalAnnouncements, recentActivity]
+      properties:
+        totalResidents:
+          type: integer
+        totalRequests:
+          type: integer
+        pendingRequests:
+          type: integer
+        approvedRequests:
+          type: integer
+        rejectedRequests:
+          type: integer
+        totalAnnouncements:
+          type: integer
+        recentActivity:
+          type: integer
+
+    RequestBreakdown:
+      type: object
+      required: [byType, byStatus]
+      properties:
+        byType:
+          type: array
+          items:
+            $ref: "#/components/schemas/BreakdownItem"
+        byStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/BreakdownItem"
+
+    BreakdownItem:
+      type: object
+      required: [label, count]
+      properties:
+        label:
+          type: string
+        count:
+          type: integer

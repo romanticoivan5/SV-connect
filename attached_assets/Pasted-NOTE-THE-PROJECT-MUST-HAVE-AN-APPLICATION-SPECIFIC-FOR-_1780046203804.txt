@@ -1,0 +1,285 @@
+NOTE: THE PROJECT MUST HAVE AN APPLICATION SPECIFIC FOR BARANGAY RESIDENCE AND ADMINS AND A WEBSITE THAT IS ONLY ACCESSIBLE BY THE ADMINS (Unified Platforms)
+
+
+
+Create a full-stack project called “BarangayConnect: Community Request and Announcement System”.
+
+
+
+SYSTEM OVERVIEW:
+
+BarangayConnect is a barangay management platform with:
+
+- Admin users who can access BOTH the website dashboard and mobile app
+
+- Resident users who can ONLY access the mobile app
+
+- Residents can submit requests and receive announcements from the barangay officials
+
+
+
+IMPORTANT ACCESS RULE:
+
+- Admin can use Website + Mobile App
+
+- Resident/User can ONLY use Mobile App
+
+- Residents must be blocked from accessing the admin website dashboard
+
+- Implement role-based authentication and protected routes
+
+
+
+TECH STACK:
+
+Frontend:
+
+- React.js
+
+- Tailwind CSS
+
+- Responsive UI
+
+
+
+Backend:
+
+- Node.js
+
+- Express.js
+
+
+
+Database:
+
+- MongoDB with Mongoose
+
+
+
+Authentication:
+
+- JWT Authentication
+
+- Role-based access control
+
+
+
+FEATURES:
+
+
+
+1. AUTHENTICATION
+
+- Login
+
+- Register
+
+- Forgot Password
+
+- JWT token authentication
+
+- Role checking middleware
+
+
+
+2. ADMIN WEBSITE DASHBOARD
+
+Only admins can access this website.
+
+
+
+Dashboard Features:
+
+- Total residents
+
+- Pending requests
+
+- Approved requests
+
+- Rejected requests
+
+- Recent announcements
+
+
+
+Request Management:
+
+- View all requests
+
+- Approve requests
+
+- Reject requests
+
+- Add remarks/comments
+
+
+
+Announcement Management:
+
+- Create announcements
+
+- Edit announcements
+
+- Delete announcements
+
+
+
+User Management:
+
+- View users
+
+- Disable users
+
+- Search users
+
+
+
+Reports:
+
+- Request analytics
+
+- Statistics charts
+
+
+
+3. MOBILE APP FEATURES
+
+Residents and Admins can use the mobile app.
+
+
+
+Mobile Screens:
+
+- Login Screen
+
+- Register Screen
+
+- Home Screen
+
+- Announcement Screen
+
+- Request Submission Screen
+
+- Request Status Tracking
+
+- Notifications Screen
+
+- Profile Screen
+
+
+
+4. REQUEST TYPES
+
+Residents can request:
+
+- Barangay Clearance
+
+- Certificate of Residency
+
+- Business Permit
+
+- Complaint Reports
+
+- Community Concerns
+
+
+
+5. REQUEST STATUS
+
+- Pending
+
+- Approved
+
+- Rejected
+
+
+
+6. UI DESIGN
+
+Theme:
+
+- Modern barangay system
+
+- Blue and green color palette
+
+- Clean and professional layout
+
+- Mobile responsive
+
+- Sidebar admin dashboard
+
+- Card-based design
+
+
+
+7. SECURITY
+
+- Protected admin routes
+
+- JWT verification middleware
+
+- Role-based authorization
+
+- Prevent residents from opening admin pages
+
+
+
+8. PROJECT STRUCTURE
+
+Generate:
+
+- Frontend folder
+
+- Backend folder
+
+- Models
+
+- Routes
+
+- Controllers
+
+- Middleware
+
+- Components
+
+- Pages
+
+- API setup
+
+- MongoDB connection
+
+
+
+9. EXTRA FEATURES
+
+- Real-time notifications
+
+- File upload support
+
+- Search functionality
+
+- Dark mode
+
+- Mobile responsive admin panel
+
+
+
+10. FINAL OUTPUT
+
+Generate:
+
+- Complete source code
+
+- Folder structure
+
+- Database schema
+
+- API routes
+
+- Sample admin account
+
+- Sample resident account
+
+- Setup instructions
+
+- Commands to run the project in Replit
